@@ -157,50 +157,57 @@ async function callAnthropic(query, mode) {
   const userPrompt = MODE_PROMPTS[mode]?.(query);
   if (!userPrompt) throw new Error(`Unknown search mode: ${mode}`);
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_KEY,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      system: SYSTEM_PROMPT,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{ role: 'user', content: userPrompt }],
-    }),
-  });
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: SYSTEM_PROMPT,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Anthropic API error ${response.status}: ${body}`);
+    if (response.status === 429) {
+      if (attempt < 3) {
+        const wait = attempt * 10000; // 10s, then 20s
+        console.log(`[Anthropic] 429 rate limit, retrying in ${wait/1000}s...`);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      throw new Error('Rate limited by Anthropic — please try again in a minute');
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Anthropic API error ${response.status}: ${body}`);
+    }
+
+    const data = await response.json();
+    const textBlocks = data.content
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
+      .join('');
+
+    const jsonMatch = textBlocks.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON object found in Claude response');
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonMatch[0]);
+    } catch {
+      throw new Error('Failed to parse JSON from Claude response');
+    }
+
+    if (!Array.isArray(parsed.companies)) parsed.companies = [];
+    return parsed;
   }
-
-  const data = await response.json();
-
-  // Extract all text blocks (Claude may interleave tool use + text blocks)
-  const textBlocks = data.content
-    .filter((b) => b.type === 'text')
-    .map((b) => b.text)
-    .join('');
-
-  // Pull out the JSON object
-  const jsonMatch = textBlocks.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('No JSON object found in Claude response');
-
-  let parsed;
-  try {
-    parsed = JSON.parse(jsonMatch[0]);
-  } catch {
-    throw new Error('Failed to parse JSON from Claude response');
-  }
-
-  // Ensure shape is valid
-  if (!Array.isArray(parsed.companies)) parsed.companies = [];
-
-  return parsed;
 }
 
 // ─── Cache Helpers ────────────────────────────────────────────────────────────
