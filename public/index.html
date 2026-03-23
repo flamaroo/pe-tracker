@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PE Tracker — Private Equity Ownership Intelligence</title>
+<title>Is This PE? — Private Equity Ownership Lookup</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -29,7 +29,6 @@
     overflow-x: hidden;
   }
 
-  /* Grid background */
   body::before {
     content: '';
     position: fixed;
@@ -55,7 +54,7 @@
   header {
     padding: 40px 0 32px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 48px;
+    margin-bottom: 40px;
   }
 
   .header-inner {
@@ -65,8 +64,6 @@
     gap: 24px;
     flex-wrap: wrap;
   }
-
-  .logo-block {}
 
   .logo-tag {
     font-family: 'DM Mono', monospace;
@@ -84,9 +81,7 @@
     letter-spacing: -0.03em;
   }
 
-  h1 span {
-    color: var(--accent);
-  }
+  h1 span { color: var(--accent); }
 
   .header-meta {
     font-family: 'DM Mono', monospace;
@@ -96,10 +91,59 @@
     line-height: 1.8;
   }
 
-  /* Search area */
-  .search-section {
-    margin-bottom: 40px;
+  /* Quick searches */
+  .quick-section {
+    margin-bottom: 32px;
   }
+
+  .quick-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .quick-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .quick-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .quick-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(232,255,71,0.05);
+  }
+
+  .quick-chip .chip-icon {
+    font-size: 10px;
+    opacity: 0.5;
+  }
+
+  .quick-chip.industry { border-color: rgba(71,200,255,0.3); color: var(--accent2); }
+  .quick-chip.industry:hover { border-color: var(--accent2); background: rgba(71,200,255,0.05); }
+  .quick-chip.firm { border-color: rgba(71,255,184,0.3); color: var(--green); }
+  .quick-chip.firm:hover { border-color: var(--green); background: rgba(71,255,184,0.05); }
+
+  /* Search */
+  .search-section { margin-bottom: 24px; }
 
   .search-label {
     font-family: 'DM Mono', monospace;
@@ -146,13 +190,8 @@
     transition: border-color 0.2s;
   }
 
-  input[type="text"]:focus {
-    border-color: var(--accent);
-  }
-
-  input[type="text"]::placeholder {
-    color: var(--muted);
-  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--muted); }
 
   .search-btn {
     background: var(--accent);
@@ -169,17 +208,9 @@
     white-space: nowrap;
   }
 
-  .search-btn:hover:not(:disabled) {
-    background: #fff;
-    transform: translateY(-1px);
-  }
+  .search-btn:hover:not(:disabled) { background: #fff; transform: translateY(-1px); }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .search-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* Mode pills */
   .mode-row {
     display: flex;
     gap: 8px;
@@ -203,6 +234,91 @@
     border-color: var(--accent2);
     color: var(--accent2);
     background: rgba(71, 200, 255, 0.06);
+  }
+
+  /* Loading UI */
+  .loading-state {
+    padding: 48px 24px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+  }
+
+  .loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .loading-step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    opacity: 0.3;
+    transition: all 0.4s ease;
+  }
+
+  .loading-step.active {
+    opacity: 1;
+    color: var(--text);
+  }
+
+  .loading-step.done {
+    opacity: 0.6;
+    color: var(--green);
+  }
+
+  .step-icon {
+    font-size: 18px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .step-bar {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .step-bar-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: translateX(-100%);
+    transition: transform 0.8s ease;
+  }
+
+  .loading-step.active .step-bar-fill {
+    transform: translateX(-20%);
+    animation: barPulse 1.2s ease-in-out infinite alternate;
+  }
+
+  .loading-step.done .step-bar-fill {
+    transform: translateX(0);
+    background: var(--green);
+    animation: none;
+  }
+
+  @keyframes barPulse {
+    from { transform: translateX(-30%); }
+    to { transform: translateX(-5%); }
+  }
+
+  .loading-note {
+    margin-top: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.6;
   }
 
   /* Status bar */
@@ -258,27 +374,13 @@
     color: var(--muted);
   }
 
-  .results-count {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--accent);
-  }
+  .results-count { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); }
 
-  /* Table */
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-  }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+  table { width: 100%; border-collapse: collapse; }
 
-  thead {
-    background: var(--surface2);
-    border-bottom: 1px solid var(--border);
-  }
+  thead { background: var(--surface2); border-bottom: 1px solid var(--border); }
 
   th {
     font-family: 'DM Mono', monospace;
@@ -294,27 +396,12 @@
 
   th:first-child { border-right: 1px solid var(--border); }
 
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.12s;
-  }
-
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--surface2); }
 
-  td {
-    padding: 18px 20px;
-    font-size: 14px;
-    vertical-align: top;
-  }
-
-  td:first-child {
-    border-right: 1px solid var(--border);
-    font-weight: 700;
-    font-size: 15px;
-  }
-
-  .company-name { font-weight: 700; }
+  td { padding: 18px 20px; font-size: 14px; vertical-align: top; }
+  td:first-child { border-right: 1px solid var(--border); font-weight: 700; font-size: 15px; }
 
   .company-sector {
     font-family: 'DM Mono', monospace;
@@ -324,27 +411,12 @@
     letter-spacing: 0.05em;
   }
 
-  .pe-firm {
-    font-weight: 600;
-    color: var(--accent2);
-  }
+  .pe-firm { font-weight: 600; color: var(--accent2); }
 
-  .deal-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--green);
-    font-weight: 500;
-  }
+  .deal-value { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--green); font-weight: 500; }
+  .deal-value.unknown { color: var(--muted); font-style: italic; }
 
-  .deal-value.unknown {
-    color: var(--muted);
-    font-style: italic;
-  }
-
-  .deal-date {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-  }
+  .deal-date { font-family: 'DM Mono', monospace; font-size: 13px; }
 
   .confidence {
     display: inline-block;
@@ -358,30 +430,9 @@
   .confidence.medium { color: var(--accent); border: 1px solid var(--accent); }
   .confidence.low { color: var(--muted); border: 1px solid var(--muted); }
 
-  /* Empty / loading states */
-  .empty-state {
-    text-align: center;
-    padding: 80px 24px;
-    color: var(--muted);
-  }
-
-  .empty-state .big-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 48px;
-    font-weight: 300;
-    opacity: 0.2;
-    margin-bottom: 16px;
-  }
-
-  .empty-state p {
-    font-size: 14px;
-    line-height: 1.7;
-  }
-
-  /* Loading skeleton */
-  .skeleton-row td {
-    padding: 20px;
-  }
+  .empty-state { text-align: center; padding: 80px 24px; color: var(--muted); }
+  .empty-state .big-label { font-family: 'DM Mono', monospace; font-size: 48px; font-weight: 300; opacity: 0.2; margin-bottom: 16px; }
+  .empty-state p { font-size: 14px; line-height: 1.7; }
 
   .skeleton {
     background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
@@ -396,7 +447,6 @@
     100% { background-position: -200% 0; }
   }
 
-  /* Notes / sources */
   .sources-block {
     margin-top: 24px;
     padding: 16px 20px;
@@ -414,16 +464,7 @@
     margin-bottom: 8px;
   }
 
-  .sources-text {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.7;
-  }
-
-  .sources-text a {
-    color: var(--accent2);
-    text-decoration: none;
-  }
+  .sources-text { font-size: 13px; color: var(--muted); line-height: 1.7; }
 
   .disclaimer {
     margin-top: 16px;
@@ -446,11 +487,7 @@
     gap: 12px;
   }
 
-  footer span {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-  }
+  footer span { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -458,21 +495,43 @@
   <header>
     <div class="header-inner">
       <div class="logo-block">
-        <div class="logo-tag">// PE Tracker v1.0</div>
-        <h1>Private<br><span>Equity</span><br>Intel</h1>
+        <div class="logo-tag">// isthispe.com</div>
+        <h1>Is This<br><span>PE?</span></h1>
       </div>
       <div class="header-meta">
-        Private equity ownership lookup<br>
-        Deal tracking &amp; portfolio intelligence
+        Find out if a company<br>is owned by private equity<br>
+        <span style="color: var(--accent)">AI + live web search</span>
       </div>
     </div>
   </header>
 
+  <!-- Quick searches -->
+  <section class="quick-section">
+    <span class="quick-label">// Popular searches</span>
+    <div class="quick-grid">
+      <button class="quick-chip" onclick="quickSearch('Petco', 'company')"><span class="chip-icon">🐾</span> Petco</button>
+      <button class="quick-chip" onclick="quickSearch('PetSmart', 'company')"><span class="chip-icon">🐶</span> PetSmart</button>
+      <button class="quick-chip" onclick="quickSearch('Panera Bread', 'company')"><span class="chip-icon">🥖</span> Panera Bread</button>
+      <button class="quick-chip" onclick="quickSearch('Burger King', 'company')"><span class="chip-icon">🍔</span> Burger King</button>
+      <button class="quick-chip" onclick="quickSearch('Guitar Center', 'company')"><span class="chip-icon">🎸</span> Guitar Center</button>
+      <button class="quick-chip" onclick="quickSearch('Mattress Firm', 'company')"><span class="chip-icon">🛏</span> Mattress Firm</button>
+      <button class="quick-chip" onclick="quickSearch('Dave & Busters', 'company')"><span class="chip-icon">🎮</span> Dave & Busters</button>
+      <button class="quick-chip" onclick="quickSearch('GNC', 'company')"><span class="chip-icon">💊</span> GNC</button>
+      <button class="quick-chip industry" onclick="quickSearch('veterinary clinics', 'industry')"><span class="chip-icon">🏥</span> Vet Clinics</button>
+      <button class="quick-chip industry" onclick="quickSearch('urgent care', 'industry')"><span class="chip-icon">⚕️</span> Urgent Care</button>
+      <button class="quick-chip industry" onclick="quickSearch('dental offices', 'industry')"><span class="chip-icon">🦷</span> Dental</button>
+      <button class="quick-chip industry" onclick="quickSearch('nursing homes', 'industry')"><span class="chip-icon">👴</span> Nursing Homes</button>
+      <button class="quick-chip firm" onclick="quickSearch('Blackstone', 'firm')"><span class="chip-icon">🏦</span> Blackstone</button>
+      <button class="quick-chip firm" onclick="quickSearch('KKR', 'firm')"><span class="chip-icon">🏦</span> KKR</button>
+      <button class="quick-chip firm" onclick="quickSearch('Apollo Global', 'firm')"><span class="chip-icon">🏦</span> Apollo</button>
+    </div>
+  </section>
+
   <section class="search-section">
-    <span class="search-label">// Search query</span>
+    <span class="search-label">// Or search anything</span>
     <div class="search-row">
       <div class="search-input-wrap">
-        <input type="text" id="queryInput" placeholder="e.g. Petco, Bausch Health, restaurant chains, healthcare..." />
+        <input type="text" id="queryInput" placeholder="e.g. Petco, Bausch Health, restaurant chains..." />
       </div>
       <button class="search-btn" id="searchBtn" onclick="runSearch()">Look Up →</button>
     </div>
@@ -486,14 +545,14 @@
 
   <div class="status-bar">
     <div class="status-dot" id="statusDot"></div>
-    <span id="statusText">Ready — enter a company name, industry, or PE firm to begin</span>
+    <span id="statusText">Ready — search a company, industry, or PE firm above</span>
   </div>
 
   <div id="resultsArea"></div>
 
   <footer>
-    <span>PE Tracker — Private Equity Intelligence</span>
-    <span>Not financial advice</span>
+    <span>isthispe.com — Private Equity Ownership Intelligence</span>
+    <span>Data via AI + web search • Not financial advice</span>
   </footer>
 </div>
 
@@ -519,45 +578,78 @@ function setStatus(state, text) {
   document.getElementById('statusText').textContent = text;
 }
 
-function showSkeletons() {
-  const rows = Array(5).fill(0).map(() => `
-    <tr class="skeleton-row">
-      <td><div class="skeleton" style="width:70%"></div><div class="skeleton" style="width:45%;margin-top:8px;height:10px"></div></td>
-      <td><div class="skeleton" style="width:80%"></div></td>
-      <td><div class="skeleton" style="width:60%"></div></td>
-      <td><div class="skeleton" style="width:55%"></div></td>
-      <td><div class="skeleton" style="width:40%"></div></td>
-    </tr>`).join('');
-
-  document.getElementById('resultsArea').innerHTML = `
-    <div class="results-header">
-      <span class="results-title">Results</span>
-      <span class="results-count">Loading...</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Company</th>
-            <th>PE Firm</th>
-            <th>Deal Value</th>
-            <th>Acquired</th>
-            <th>Confidence</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+function quickSearch(query, mode) {
+  document.getElementById('queryInput').value = query;
+  document.querySelectorAll('.mode-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.mode === mode);
+  });
+  currentMode = mode;
+  runSearch();
 }
 
-function renderResults(data) {
+// Animated loading steps
+const LOADING_STEPS = [
+  { icon: '🔍', label: 'Searching the web...' },
+  { icon: '🧠', label: 'Analyzing PE ownership...' },
+  { icon: '📊', label: 'Structuring results...' },
+  { icon: '💾', label: 'Saving to database...' },
+];
+
+function showLoadingUI(query) {
+  const stepsHTML = LOADING_STEPS.map((s, i) => `
+    <div class="loading-step" id="lstep-${i}">
+      <span class="step-icon">${s.icon}</span>
+      <div style="flex:1">
+        <div>${s.label}</div>
+        <div class="step-bar"><div class="step-bar-fill" id="lstep-bar-${i}"></div></div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('resultsArea').innerHTML = `
+    <div class="loading-state">
+      <div class="loading-steps">${stepsHTML}</div>
+      <div class="loading-note">This may take 10–20 seconds for new searches.<br>Cached results return instantly.</div>
+    </div>`;
+
+  // Animate steps
+  let step = 0;
+  activateStep(0);
+  const interval = setInterval(() => {
+    step++;
+    if (step < LOADING_STEPS.length) {
+      markStepDone(step - 1);
+      activateStep(step);
+    } else {
+      clearInterval(interval);
+    }
+  }, 4000);
+
+  return interval;
+}
+
+function activateStep(i) {
+  const el = document.getElementById(`lstep-${i}`);
+  if (el) el.classList.add('active');
+}
+
+function markStepDone(i) {
+  const el = document.getElementById(`lstep-${i}`);
+  if (el) { el.classList.remove('active'); el.classList.add('done'); }
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderResults(data, fromCache) {
   const { companies, notes, query } = data;
 
   if (!companies || companies.length === 0) {
     document.getElementById('resultsArea').innerHTML = `
       <div class="empty-state">
         <div class="big-label">∅</div>
-        <p>No PE-backed companies found for "<strong>${query}</strong>".<br>
+        <p>No PE-backed companies found for "<strong>${escHtml(query)}</strong>".<br>
         Try broadening your search or checking the spelling.</p>
       </div>`;
     return;
@@ -567,7 +659,6 @@ function renderResults(data) {
     const valueClass = c.deal_value && c.deal_value !== 'Unknown' ? 'deal-value' : 'deal-value unknown';
     const valueText = c.deal_value && c.deal_value !== 'Unknown' ? c.deal_value : 'undisclosed';
     const confClass = c.confidence === 'High' ? 'high' : c.confidence === 'Medium' ? 'medium' : 'low';
-
     return `<tr>
       <td>
         <div class="company-name">${escHtml(c.company)}</div>
@@ -580,9 +671,13 @@ function renderResults(data) {
     </tr>`;
   }).join('');
 
+  const cacheTag = fromCache
+    ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-left:12px;">⚡ instant (cached)</span>`
+    : '';
+
   document.getElementById('resultsArea').innerHTML = `
     <div class="results-header">
-      <span class="results-title">Results</span>
+      <span class="results-title">Results ${cacheTag}</span>
       <span class="results-count">${companies.length} entr${companies.length === 1 ? 'y' : 'ies'} found</span>
     </div>
     <div class="table-wrap">
@@ -605,13 +700,8 @@ function renderResults(data) {
       <div class="sources-text">${escHtml(notes)}</div>
     </div>` : ''}
     <div class="disclaimer">
-      ⚠ Always verify deal details with official filings, press releases, or financial data providers before making business decisions.
+      ⚠ Data sourced via AI-assisted web research. Always verify deal details with official filings, press releases, or financial data providers before making business decisions.
     </div>`;
-}
-
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 async function runSearch() {
@@ -620,67 +710,40 @@ async function runSearch() {
 
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
-  setStatus('active', `Searching for PE ownership data: "${query}"...`);
-  showSkeletons();
+  setStatus('active', `Looking up "${query}"...`);
 
-  const modeInstructions = {
-    company: `Find private equity ownership information for the specific company or companies named: "${query}". Look up which PE firm owns or has acquired them, deal value, and acquisition date.`,
-    industry: `Find companies in the "${query}" industry or sector that are owned by private equity firms. List multiple companies if possible.`,
-    firm: `List portfolio companies owned by the PE firm "${query}". Include deal values and acquisition dates for each.`,
-    recent: `Find recent private equity deals and acquisitions from ${query}. List the companies acquired, by which PE firm, and for how much.`
-  };
-
-  const systemPrompt = `You are a private equity research assistant with access to web search. The user wants to know about PE firm ownership of companies.
-
-Search the web thoroughly for accurate, up-to-date information. Return ONLY a JSON object with this exact structure:
-{
-  "query": "the original query",
-  "companies": [
-    {
-      "company": "Company Name",
-      "sector": "Industry/Sector",
-      "pe_firm": "PE Firm Name",
-      "deal_value": "$X billion or Unknown",
-      "acquired": "Year or Month Year or Unknown",
-      "confidence": "High|Medium|Low"
-    }
-  ],
-  "notes": "Any important caveats, partial info, or research notes in 1-2 sentences."
-}
-
-Confidence levels:
-- High: confirmed by multiple reliable sources (WSJ, Bloomberg, Reuters, SEC filings)
-- Medium: reported by one credible source
-- Low: inferred or from secondary sources
-
-Use web search to find current, accurate information. Return ONLY valid JSON, no markdown, no preamble.`;
-
+  const loadingTimer = showLoadingUI(query);
 
   try {
     const response = await fetch("/api/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: query, mode: currentMode })
+      body: JSON.stringify({ query, mode: currentMode })
     });
+
+    clearInterval(loadingTimer);
+
     if (!response.ok) throw new Error(`Server error: ${response.status}`);
     const parsed = await response.json();
-    renderResults(parsed);
-    setStatus('done', `Found ${parsed.companies?.length || 0} result(s) for "${query}"`);
+
+    renderResults(parsed, parsed._cache);
+    const cacheNote = parsed._cache ? '⚡ instant result from cache' : `sourced via live web search in ${parsed._duration_ms}ms`;
+    setStatus('done', `Found ${parsed.companies?.length || 0} result(s) for "${query}" — ${cacheNote}`);
   } catch (err) {
+    clearInterval(loadingTimer);
     console.error(err);
     setStatus('error', `Error: ${err.message}`);
     document.getElementById('resultsArea').innerHTML = `
       <div class="empty-state">
         <div class="big-label">!</div>
         <p>Something went wrong: <strong>${escHtml(err.message)}</strong><br>
-        Please try again.</p>
+        Please try again in a moment.</p>
       </div>`;
   } finally {
     btn.disabled = false;
   }
 }
 
-// Enter key support
 document.getElementById('queryInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') runSearch();
 });
