@@ -462,9 +462,8 @@
         <h1>Private<br><span>Equity</span><br>Intel</h1>
       </div>
       <div class="header-meta">
-        AI-powered ownership lookup<br>
-        Backed by live web search<br>
-        <span style="color: var(--accent)">claude-sonnet-4-20250514</span>
+        Private equity ownership lookup<br>
+        Deal tracking &amp; portfolio intelligence
       </div>
     </div>
   </header>
@@ -494,7 +493,7 @@
 
   <footer>
     <span>PE Tracker — Private Equity Intelligence</span>
-    <span>Data sourced via AI + web search • Not financial advice</span>
+    <span>Not financial advice</span>
   </footer>
 </div>
 
@@ -606,7 +605,7 @@ function renderResults(data) {
       <div class="sources-text">${escHtml(notes)}</div>
     </div>` : ''}
     <div class="disclaimer">
-      ⚠ Data sourced via AI-assisted web research. Always verify deal details with official filings, press releases, or financial data providers before making business decisions.
+      ⚠ Always verify deal details with official filings, press releases, or financial data providers before making business decisions.
     </div>`;
 }
 
@@ -666,7 +665,7 @@ Use web search to find current, accurate information. Return ONLY valid JSON, no
     if (!response.ok) throw new Error(`Server error: ${response.status}`);
     const parsed = await response.json();
     renderResults(parsed);
-    setStatus('done', `Found ${parsed.companies?.length || 0} result(s) for "${query}" — data sourced via web search`);
+    setStatus('done', `Found ${parsed.companies?.length || 0} result(s) for "${query}"`);
   } catch (err) {
     console.error(err);
     setStatus('error', `Error: ${err.message}`);
